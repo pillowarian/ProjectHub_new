@@ -1,0 +1,220 @@
+body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background: linear-gradient(to bottom, #f0f2f5 0%, #fff 100%);
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+.container {
+    display: flex;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    width: 100%;
+    max-width: 980px;
+    height: auto;
+    min-height: 460px;
+}
+.left-panel {
+    flex: 1;
+    background: url('file.svg');
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    padding: 40px;
+    box-sizing: border-box;
+}
+.left-panel h1 {
+    font-size: 48px;
+    font-weight: bold;
+    margin: 0;
+    text-align: center;
+}
+.right-panel {
+    flex: 1;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-sizing: border-box;
+}
+.logo {
+    font-size: 48px;
+    font-weight: bold;
+    color: #0d305d;
+    margin-bottom: 20px;
+    text-align: center;
+}
+.tagline {
+    font-size: 28px;
+    font-weight: 300;
+    color: #1c1e21;
+    margin-bottom: 30px;
+    text-align: center;
+}
+.login-form {
+    display: block;
+}
+.register-form {
+    display: none;
+}
+.form-group {
+    margin-bottom: 16px;
+}
+.form-group label {
+    display: block;
+    font-size: 12px;
+    color: #606770;
+    margin-bottom: 4px;
+}
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #dddfe2;
+    border-radius: 6px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+.form-group input:focus {
+    outline: none;
+    border-color: #16427c;
+}
+.btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 16px;
+    transition: background 0.2s;
+}
+.login-btn {
+    background: #092f60;
+    color: white;
+}
+.login-btn:hover {
+    background: #0b2d5b;
+}
+.register-link {
+    text-align: center;
+    color: #081f3d;
+    text-decoration: none;
+    font-weight: bold;
+    margin-top: 20px;
+    display: block;
+}
+.register-link:hover {
+    text-decoration: underline;
+}
+.forgot-password {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 14px;
+}
+.forgot-password a {
+    color: #123664;
+    text-decoration: none;
+}
+.forgot-password a:hover {
+    text-decoration: underline;
+}
+.divider {
+    text-align: center;
+    margin: 20px 0;
+    color: #606770;
+    font-size: 14px;
+    position: relative;
+}
+.divider::before {
+    content: '';
+    display: block;
+    width: 100%;
+    height: 1px;
+    background: #dadde1;
+    position: absolute;
+    top: 50%;
+    left: 0;
+    z-index: 0;
+}
+.divider span {
+    padding: 0 10px;
+    background: white;
+    position: relative;
+    z-index: 1;
+}
+.back-link {
+    text-align: center;
+    margin-top: 20px;
+}
+.back-link a {
+    color: #1877f2;
+    text-decoration: none;
+    font-weight: bold;
+}
+.back-link a:hover {
+    text-decoration: underline;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    .container {
+        flex-direction: column;
+        height: auto;
+        max-width: 100%;
+        border-radius: 0;
+        box-shadow: none;
+    }
+    .left-panel {
+        flex: none;
+        padding: 40px 20px;
+        text-align: center;
+    }
+    .left-panel h1 {
+        font-size: 32px;
+    }
+    .right-panel {
+        padding: 20px;
+    }
+    .logo {
+        font-size: 32px;
+        margin-bottom: 10px;
+    }
+    .tagline {
+        font-size: 20px;
+        margin-bottom: 20px;
+    }
+    .form-group input {
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+}
+
+@media (max-width: 480px) {
+    .logo {
+        font-size: 28px;
+    }
+    .tagline {
+        font-size: 18px;
+    }
+    .right-panel {
+        padding: 15px;
+    }
+    .left-panel {
+        padding: 20px 10px;
+    }
+    .left-panel h1 {
+        font-size: 24px;
+    }
+}
