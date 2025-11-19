@@ -164,6 +164,12 @@ body {
 .back-link a:hover {
     text-decoration: underline;
 }
+.error-message {
+    color: #d93025;
+    font-size: 14px;
+    margin-top: 10px;
+    text-align: center;
+}
 
 /* Mobile Responsiveness */
 @media (max-width: 768px) {

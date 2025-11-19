@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project View - ProjecTra</title>
+    <link rel="stylesheet" href="project-view.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation Bar -->
+        <nav class="navbar">
+            <div class="nav-left">
+                <button type="button" class="btn btn-secondary nav-btn" onclick="window.location.href='/home.html'">
+                    ← Back to Home
+                </button>
+            </div>
+            <div class="nav-right">
+                <button type="button" class="btn btn-primary nav-btn" id="editToggleBtn">
+                    ✏️ Edit Mode
+                </button>
+                <button type="button" class="btn btn-danger nav-btn" id="deleteProjectBtn" style="display: none;">
+                    🗑️ Delete Project
+                </button>
+            </div>
+        </nav>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="loading-state">
+            <div class="loader"></div>
+            <p>Loading project...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="error-state" style="display: none;">
+            <div class="error-icon">⚠️</div>
+            <h2>Project Not Found</h2>
+            <p>The project you're looking for doesn't exist or has been removed.</p>
+            <button class="btn btn-primary" onclick="window.location.href='/home.html'">
+                Go Back Home
+            </button>
+        </div>
+
+        <!-- Project Content -->
+        <div id="projectContent" class="project-content" style="display: none;">
+            <!-- Project Header -->
+            <div class="project-header">
+                <div class="project-title">
+                    <h1 id="projectName">Project Name</h1>
+                    <div class="project-meta">
+                        <span class="meta-item">
+                            👤 By <a href="#" id="projectOwner" class="user-link">Author Name</a>
+                        </span>
+                        <span class="meta-item">
+                            🏢 <span id="projectOrg">Organization</span>
+                        </span>
+                        <span class="meta-item">
+                            📅 <span id="projectDate">Created Date</span>
+                        </span>
+                        <span class="meta-item privacy-badge" id="privacyBadge">
+                            🔓 Public
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Project Stats -->
+                <div class="project-stats">
+                    <button class="stat-item stat-btn" id="likeBtn">
+                        <span id="likeIcon" class="like-icon">🤍</span>
+                        <span class="stat-value" id="likesCount">0</span>
+                        <span class="stat-label">Likes</span>
+                    </button>
+                    <div class="stat-item">
+                        <span class="stat-value" id="commentsCount">0</span>
+                        <span class="stat-label">Comments</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alert Messages -->
+            <div id="alertMessage" class="alert" style="display: none;"></div>
+
+            <!-- Project Details - View Mode -->
+            <div id="viewMode" class="project-details">
+                <div class="detail-section">
+                    <h3>📝 Description</h3>
+                    <p id="projectDescription">Project description will appear here...</p>
+                </div>
+
+                <div class="detail-section">
+                    <h3>🔗 Project Link</h3>
+                    <p id="projectLink">
+                        <a href="#" target="_blank" rel="noopener noreferrer">View Project</a>
+                    </p>
+                </div>
+
+                <div class="detail-section">
+                    <h3>🏷️ Tags</h3>
+                    <div id="projectTags" class="tags-container">
+                        <!-- Tags will be populated dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Project Details - Edit Mode -->
+            <div id="editMode" class="project-edit" style="display: none;">
+                <form id="editProjectForm">
+                    <div class="form-group">
+                        <label for="editName">Project Name</label>
+                        <input type="text" id="editName" name="name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editDescription">Description</label>
+                        <textarea id="editDescription" name="description" rows="4"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editLink">Project Link</label>
+                        <input type="url" id="editLink" name="link" placeholder="https://github.com/username/project">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editOrganization">Organization</label>
+                        <input type="text" id="editOrganization" name="organization">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editTags">Tags</label>
+                        <input type="text" id="editTags" name="tags" placeholder="react, javascript, web">
+                        <span class="help-text">Separate tags with commas</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editPrivacy">Privacy</label>
+                        <select id="editPrivacy" name="privacy">
+                            <option value="public">Public</option>
+                            <option value="private">Private</option>
+                            <option value="organization">Organization Only</option>
+                        </select>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary" id="saveBtn">
+                            <span class="btn-text">💾 Save Changes</span>
+                            <span class="spinner" style="display: none;"></span>
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="cancelEditBtn">
+                            ❌ Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Comments Section -->
+            <div id="commentsSection" class="comments-section">
+                <h3>💬 Comments</h3>
+                
+                <!-- Comment Form -->
+                <div class="comment-form-container">
+                    <form id="commentForm" class="comment-form">
+                        <textarea placeholder="Share your thoughts about this project..." required></textarea>
+                        <div class="comment-form-actions">
+                            <button type="submit" class="btn btn-primary">Post Comment</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Comments List -->
+                <div class="comments-container">
+                    <div id="commentsLoading" class="loading-state" style="display: none;">
+                        <div class="loader"></div>
+                        <p>Loading comments...</p>
+                    </div>
+                    
+                    <div id="commentsList" class="comments-list">
+                        <!-- Comments will be loaded here -->
+                    </div>
+                    
+                    <button id="loadMoreComments" class="btn btn-secondary load-more-btn" style="display: none;">
+                        Load More Comments
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Profile Modal -->
+    <div id="userProfileModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>👤 User Profile</h2>
+                <button class="close-btn" id="closeProfileModal">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="profileLoading" class="loading-state">
+                    <div class="loader"></div>
+                    <p>Loading profile...</p>
+                </div>
+                <div id="profileContent" style="display: none;">
+                    <div class="profile-info">
+                        <div class="profile-item">
+                            <span class="label">Name:</span>
+                            <span class="value" id="profileName">-</span>
+                        </div>
+                        <div class="profile-item">
+                            <span class="label">Username:</span>
+                            <span class="value" id="profileUsername">-</span>
+                        </div>
+                        <div class="profile-item">
+                            <span class="label">Position:</span>
+                            <span class="value" id="profilePosition">-</span>
+                        </div>
+                        <div class="profile-item">
+                            <span class="label">Organization:</span>
+                            <span class="value" id="profileOrganization">-</span>
+                        </div>
+                        <div class="profile-item">
+                            <span class="label">Total Projects:</span>
+                            <span class="value" id="profileTotalProjects">0</span>
+                        </div>
+                        <div class="profile-item">
+                            <span class="label">Member Since:</span>
+                            <span class="value" id="profileMemberSince">-</span>
+                        </div>
+                    </div>
+                    <div class="profile-links">
+                        <a href="#" id="profileGithub" class="profile-link github" target="_blank" style="display: none;">
+                            🐙 GitHub
+                        </a>
+                        <a href="#" id="profileLinkedIn" class="profile-link linkedin" target="_blank" style="display: none;">
+                            💼 LinkedIn
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content delete-modal">
+            <div class="modal-header-danger">
+                <div class="danger-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 6h18"></path>
+                        <path d="M19 6v14c0 1-1 2-2 2H7c0-1-1-2-1-2V6"></path>
+                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                    </svg>
+                </div>
+                <h2>Delete Project</h2>
+            </div>
+            <div class="modal-body">
+                <p class="confirmation-text">Are you sure you want to permanently delete this project?</p>
+                <div class="warning-box">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    <span>This action cannot be undone. All project data will be permanently removed.</span>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="cancelDelete">
+                    <span>Cancel</span>
+                </button>
+                <button class="btn btn-danger" id="confirmDelete">
+                    <span class="btn-text">Delete Forever</span>
+                    <span class="spinner" style="display: none;"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="auth-manager.js"></script>
+    <script src="project-view.js"></script>
+</body>
+</html>

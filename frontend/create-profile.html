@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Profile - ProjecTra</title>
+    <link rel="stylesheet" href="create-profile.css">
+</head>
+<body>
+    <div class="container">
+        <div class="profile-card">
+            <div class="header">
+                <h1>Create Your Profile</h1>
+                <p>Join ProjecTra and start sharing your projects</p>
+            </div>
+
+            <form id="createProfileForm" class="profile-form">
+                <!-- Required Fields -->
+                <div class="form-section">
+                    <h3>Required Information</h3>
+                    
+                    <div class="form-group">
+                        <label for="username">Username <span class="required">*</span></label>
+                        <input type="text" id="username" name="username" required placeholder="Enter username">
+                        <span class="error-message" id="username-error"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="name">Full Name <span class="required">*</span></label>
+                        <input type="text" id="name" name="name" required placeholder="Enter your full name">
+                        <span class="error-message" id="name-error"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email <span class="required">*</span></label>
+                        <input type="email" id="email" name="email" required placeholder="Enter your email">
+                        <span class="error-message" id="email-error"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password <span class="required">*</span></label>
+                        <input type="password" id="password" name="password" required placeholder="Enter password">
+                        <span class="error-message" id="password-error"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="position">Position <span class="required">*</span></label>
+                        <select id="position" name="position" required>
+                            <option value="">Select your position</option>
+                            <option value="student">Student</option>
+                            <option value="teacher">Teacher</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <span class="error-message" id="position-error"></span>
+                    </div>
+                </div>
+
+                <!-- Optional Fields -->
+                <div class="form-section">
+                    <h3>Optional Information</h3>
+                    
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" name="phone" placeholder="Enter phone number">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="organization">Organization</label>
+                        <input type="text" id="organization" name="organization" placeholder="Enter organization/institution">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="github_url">GitHub URL</label>
+                        <input type="url" id="github_url" name="github_url" placeholder="https://github.com/yourusername">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="linkedin_url">LinkedIn URL</label>
+                        <input type="url" id="linkedin_url" name="linkedin_url" placeholder="https://linkedin.com/in/yourusername">
+                    </div>
+                </div>
+
+                <!-- Alert Message -->
+                <div id="alertMessage" class="alert" style="display: none;"></div>
+
+                <!-- Submit Button -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        <span class="btn-text">Create Profile</span>
+                        <span class="spinner" style="display: none;"></span>
+                    </button>
+                    <p class="login-link">Already have an account? <a href="/auth/login.html">Login here</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="auth-manager.js"></script>
+    <script src="create-profile.js"></script>
+</body>
+</html>

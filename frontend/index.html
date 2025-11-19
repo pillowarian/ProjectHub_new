@@ -3,9 +3,572 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> </title>
+    <title>ProjecTra - Discover Projects</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            padding: 15px 0;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin: 0;
+            text-decoration: none;
+            color: #667eea;
+        }
+
+        .nav-right {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 40px 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 30px;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .page-header h1 {
+            font-size: 48px;
+            color: #333;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-header p {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 40px;
+        }
+
+        /* Loading State */
+        .loading-state {
+            text-align: center;
+            padding: 80px 20px;
+        }
+
+        .loader {
+            width: 60px;
+            height: 60px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-state p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 100px 20px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .empty-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        /* Projects Grid */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .project-card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border-left: 4px solid #667eea;
+        }
+
+        .project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .project-card h3 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .privacy-badge {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .project-author {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .author-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 12px;
+        }
+
+        .author-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .author-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .author-username {
+            font-size: 12px;
+            color: #667eea;
+        }
+
+        .project-description {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .project-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .tag {
+            padding: 5px 12px;
+            background: #f0f0f0;
+            border-radius: 15px;
+            font-size: 12px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .project-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .project-link {
+            color: #667eea;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .project-link:hover {
+            color: #764ba2;
+        }
+
+        .view-more {
+            color: #999;
+            font-size: 13px;
+        }
+
+        /* Load More */
+        .load-more-container {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .cta-section {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            margin-top: 60px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .cta-section h2 {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .cta-section p {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .projects-grid {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 0 15px;
+            }
+
+            .nav-right {
+                gap: 10px;
+            }
+
+            .btn {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+
+            .container {
+                padding: 0 15px;
+            }
+
+            .page-header h1 {
+                font-size: 32px;
+            }
+
+            .page-header p {
+                font-size: 16px;
+            }
+
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-    
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <!-- Logo -->
+            <div class="nav-left">
+                <h1 class="logo">ProjecTra</h1>
+            </div>
+
+            <!-- Auth Buttons -->
+            <div class="nav-right">
+                <a href="/auth/login.html" class="btn btn-secondary">Login</a>
+                <a href="/create-profile.html" class="btn btn-primary">Sign Up</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1>Discover Amazing Projects</h1>
+                <p>Explore public projects from our community of developers</p>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loadingState" class="loading-state">
+                <div class="loader"></div>
+                <p>Loading projects...</p>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <div class="empty-icon">📦</div>
+                <h3>No Public Projects Yet</h3>
+                <p>Check back later to discover amazing projects from our community!</p>
+            </div>
+
+            <!-- Projects Grid -->
+            <div id="projectsGrid" class="projects-grid" style="display: none;">
+                <!-- Projects will be dynamically loaded here -->
+            </div>
+
+            <!-- Load More Button -->
+            <div class="load-more-container" id="loadMoreContainer" style="display: none;">
+                <button class="btn btn-primary" id="loadMoreBtn">
+                    <span>Load More Projects</span>
+                </button>
+            </div>
+
+            <!-- CTA Section -->
+            <div class="cta-section">
+                <h2>Join ProjecTra Today</h2>
+                <p>Share your projects, discover new ideas, and connect with fellow developers</p>
+                <a href="/create-profile.html" class="btn btn-primary">Get Started</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API_BASE_URL = `${window.location.origin}/api`;
+
+        // Get elements
+        const loadingState = document.getElementById('loadingState');
+        const emptyState = document.getElementById('emptyState');
+        const projectsGrid = document.getElementById('projectsGrid');
+        const loadMoreContainer = document.getElementById('loadMoreContainer');
+        const loadMoreBtn = document.getElementById('loadMoreBtn');
+
+        let currentPage = 1;
+        let allProjects = [];
+
+        // Get initials from name
+        function getInitials(name) {
+            const names = name.split(' ');
+            if (names.length >= 2) {
+                return (names[0][0] + names[names.length - 1][0]).toUpperCase();
+            }
+            return name.substring(0, 2).toUpperCase();
+        }
+
+        // Load public projects only
+        async function loadProjects(reset = false) {
+            if (reset) {
+                currentPage = 1;
+                allProjects = [];
+                projectsGrid.innerHTML = '';
+            }
+
+            loadingState.style.display = 'block';
+            projectsGrid.style.display = 'none';
+            emptyState.style.display = 'none';
+
+            try {
+                // Only load public projects
+                const url = `${API_BASE_URL}/projects?page=${currentPage}&limit=12&privacy=public`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    allProjects = allProjects.concat(data.data);
+                    displayProjects(data.data);
+
+                    if (data.data.length < 12) {
+                        loadMoreContainer.style.display = 'none';
+                    } else {
+                        loadMoreContainer.style.display = 'block';
+                    }
+                } else {
+                    showEmptyState();
+                }
+            } catch (error) {
+                console.error('Error loading projects:', error);
+                showEmptyState();
+            } finally {
+                loadingState.style.display = 'none';
+            }
+        }
+
+        // Display projects
+        function displayProjects(projects) {
+            if (allProjects.length === 0) {
+                showEmptyState();
+                return;
+            }
+
+            projectsGrid.style.display = 'grid';
+
+            projects.forEach(project => {
+                const card = createProjectCard(project);
+                projectsGrid.appendChild(card);
+            });
+        }
+
+        // Create project card (simplified version without likes/comments)
+        function createProjectCard(project) {
+            const card = document.createElement('div');
+            card.className = 'project-card';
+
+            const tags = project.tags ? project.tags.split(',').map(t => t.trim()) : [];
+            const description = project.description || 'No description provided';
+            const truncatedDesc = description.length > 150 ? description.substring(0, 150) + '...' : description;
+
+            const authorInitials = getInitials(project.user_name || 'User');
+
+            card.innerHTML = `
+                <div class="project-header">
+                    <h3>${project.name}</h3>
+                    <span class="privacy-badge">public</span>
+                </div>
+                
+                <div class="project-author">
+                    <div class="author-avatar">${authorInitials}</div>
+                    <div class="author-info">
+                        <span class="author-name">${project.user_name || 'Unknown'}</span>
+                        <span class="author-username">@${project.username || 'user'}</span>
+                    </div>
+                </div>
+                
+                <p class="project-description">${truncatedDesc}</p>
+                
+                ${tags.length > 0 ? `
+                    <div class="project-tags">
+                        ${tags.slice(0, 5).map(tag => `<span class="tag">${tag}</span>`).join('')}
+                    </div>
+                ` : ''}
+                
+                <div class="project-footer">
+                    <div class="view-more">
+                        View project details →
+                    </div>
+                    ${project.link ? `<a href="${project.link}" class="project-link" target="_blank" onclick="event.stopPropagation()">View →</a>` : ''}
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Show empty state
+        function showEmptyState() {
+            loadingState.style.display = 'none';
+            projectsGrid.style.display = 'none';
+            emptyState.style.display = 'block';
+            loadMoreContainer.style.display = 'none';
+        }
+
+        // Load more button
+        loadMoreBtn.addEventListener('click', () => {
+            currentPage++;
+            loadProjects();
+        });
+
+        // Initialize - load public projects
+        loadProjects(true);
+    </script>
 </body>
 </html>
