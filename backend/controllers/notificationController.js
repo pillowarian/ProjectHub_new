@@ -102,14 +102,14 @@ exports.createNotification = async (recipientId, type, title, message, projectId
         if (recipientId === senderId) {
             return;
         }
-        
-        // Use entityId or projectId as fallback
-        const finalEntityId = entityId || projectId;
-        
+
+        // Determine comment_id based on entityType
+        const commentId = entityType === 'comment' ? entityId : null;
+
         await db.query(
-            `INSERT INTO notifications (user_id, actor_user_id, type, is_read, comment_id, project_id, title, message) 
+            `INSERT INTO notifications (user_id, actor_user_id, type, is_read, comment_id, project_id, title, message)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-            [recipientId, senderId, type, entityType, finalEntityId, projectId, title, message]
+            [recipientId, senderId, type, false, commentId, projectId, title, message]
         );
     } catch (error) {
         console.error('Error creating notification:', error);
@@ -152,36 +152,109 @@ exports.createLikeNotification = async (projectId, actorUserId) => {
 };
 
 // Create project comment notification
-exports.createCommentNotification = async (projectId, commentId, actorUserId) => {
+exports.createCommentNotification = async (projectId, commentId, actorUserId, excludeUserId = null) => {
     try {
         // Get project details and owner
         const [projects] = await db.query(
             'SELECT p.name, p.user_id, u.name as owner_name FROM projects p JOIN users u ON p.user_id = u.id WHERE p.id = ?',
             [projectId]
         );
-        
+
         if (projects.length === 0) return;
-        
+
         const project = projects[0];
-        
+
         // Get actor details
         const [actors] = await db.query('SELECT name FROM users WHERE id = ?', [actorUserId]);
         if (actors.length === 0) return;
-        
+
         const actorName = actors[0].name;
-        
+
+        // Notify project owner
+        if (project.user_id !== actorUserId) {
+            await exports.createNotification(
+                project.user_id,
+                'comment',
+                'New comment on your project',
+                `${actorName} commented on your project "${project.name}"`,
+                projectId,
+                actorUserId,
+                'comment',
+                commentId
+            );
+        }
+
+        // Get all users who have commented on this project (excluding the actor, project owner, and excluded user)
+        let query = 'SELECT DISTINCT c.user_id FROM comments c WHERE c.project_id = ? AND c.user_id != ?';
+        const params = [projectId, actorUserId];
+
+        if (excludeUserId) {
+            query += ' AND c.user_id != ?';
+            params.push(excludeUserId);
+        }
+
+        const [commenters] = await db.query(query, params);
+
+        // Notify all previous commenters
+        for (const commenter of commenters) {
+            if (commenter.user_id !== project.user_id) { // Don't notify project owner twice
+                await exports.createNotification(
+                    commenter.user_id,
+                    'comment',
+                    'New comment on a project you commented on',
+                    `${actorName} also commented on "${project.name}"`,
+                    projectId,
+                    actorUserId,
+                    'comment',
+                    commentId
+                );
+            }
+        }
+    } catch (error) {
+        console.error('Error creating comment notification:', error);
+    }
+};
+
+// Create reply notification for original commenter
+exports.createReplyNotification = async (projectId, commentId, parentCommentId, actorUserId) => {
+    try {
+        // Get the original commenter's user ID
+        const [parentComments] = await db.query(
+            'SELECT c.user_id, u.name as commenter_name FROM comments c JOIN users u ON c.user_id = u.id WHERE c.id = ?',
+            [parentCommentId]
+        );
+
+        if (parentComments.length === 0) return;
+
+        const originalCommenter = parentComments[0];
+
+        // Don't notify if replying to own comment
+        if (originalCommenter.user_id === actorUserId) return;
+
+        // Get project details
+        const [projects] = await db.query('SELECT p.name FROM projects p WHERE p.id = ?', [projectId]);
+        if (projects.length === 0) return;
+
+        const project = projects[0];
+
+        // Get actor details
+        const [actors] = await db.query('SELECT name FROM users WHERE id = ?', [actorUserId]);
+        if (actors.length === 0) return;
+
+        const actorName = actors[0].name;
+
         await exports.createNotification(
-            project.user_id,
+            originalCommenter.user_id,
             'comment',
-            'New comment on your project',
-            `${actorName} commented on your project "${project.name}"`,
+            'New reply to your comment',
+            `${actorName} replied to your comment on "${project.name}"`,
             projectId,
             actorUserId,
             'comment',
             commentId
         );
     } catch (error) {
-        console.error('Error creating comment notification:', error);
+        console.error('Error creating reply notification:', error);
     }
 };
 
@@ -208,7 +281,7 @@ exports.createOrganizationProjectNotification = async (projectId, actorUserId) =
         for (const user of orgUsers) {
             await exports.createNotification(
                 user.id,
-                'new_project_org',
+                'organization_project',
                 'New project in your organization',
                 `${project.creator_name} created a new project "${project.name}" in ${project.organization}`,
                 projectId,
@@ -261,12 +334,12 @@ exports.deleteNotification = async (req, res) => {
 exports.getUnreadCount = async (req, res) => {
     try {
         const userId = req.user.userId;
-        
+
         const [result] = await db.query(
             'SELECT COUNT(*) as unread_count FROM notifications WHERE user_id = ? AND is_read = FALSE',
             [userId]
         );
-        
+
         res.json({
             success: true,
             unread_count: result[0].unread_count

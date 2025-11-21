@@ -602,7 +602,21 @@ exports.addComment = async (req, res) => {
         
         // Create comment notification
         try {
-            await notificationController.createCommentNotification(projectId, result.insertId, userId);
+            // Get the original commenter ID if this is a reply
+            let excludeUserId = null;
+            if (parentCommentId) {
+                const [parentComments] = await db.query('SELECT user_id FROM comments WHERE id = ?', [parentCommentId]);
+                if (parentComments.length > 0) {
+                    excludeUserId = parentComments[0].user_id;
+                }
+            }
+
+            await notificationController.createCommentNotification(projectId, result.insertId, userId, excludeUserId);
+
+            // If this is a reply, also notify the original commenter
+            if (parentCommentId) {
+                await notificationController.createReplyNotification(projectId, result.insertId, parentCommentId, userId);
+            }
         } catch (error) {
             console.error('Error creating comment notification:', error);
         }

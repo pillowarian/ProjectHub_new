@@ -1,0 +1,15 @@
+
+> ProjecTra-backend@1.0.0 start
+> node backend/server.js
+
+Server is running on port 5500
+BadRequestError: request aborted
+    at IncomingMessage.onAborted (/Users/saikat/Documents/projects/Github Projects/ProTrack/node_modules/raw-body/index.js:245:10)
+    at IncomingMessage.emit (node:events:518:28)
+    at IncomingMessage._destroy (node:_http_incoming:221:10)
+    at _destroy (node:internal/streams/destroy:122:10)
+    at IncomingMessage.destroy (node:internal/streams/destroy:84:5)
+    at abortIncoming (node:_http_server:811:9)
+    at socketOnClose (node:_http_server:805:3)
+    at Socket.emit (node:events:530:35)
+    at TCP.<anonymous> (node:net:346:12)
