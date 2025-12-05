@@ -7,8 +7,8 @@ try {
 } catch (e) {
     authManager = {
         setAuthData: (token, userData) => {
-            localStorage.setItem('ProjecTra_token', token);
-            localStorage.setItem('ProjecTra_user', JSON.stringify(userData));
+            localStorage.setItem('ProjectHub_token', token);
+            localStorage.setItem('ProjectHub_user', JSON.stringify(userData));
         }
     };
 }

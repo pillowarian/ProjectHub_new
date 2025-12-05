@@ -7,7 +7,7 @@ const path = require('path');
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5500; // Dedicated port for ProjecTra
+const PORT = process.env.PORT || 5500; // Dedicated port for ProjectHub
 
 // Middleware
 app.use(cors());
@@ -46,6 +46,10 @@ app.use((err, req, res, next) => {
     });
 });
 
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+    });
+}
+
+module.exports = app;

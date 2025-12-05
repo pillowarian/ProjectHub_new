@@ -3,8 +3,8 @@ const API_BASE_URL = `${window.location.origin}/api`;
 // Initialize auth manager
 const authManager = window.authManager || new (class {
     constructor() {
-        this.TOKEN_KEY = 'ProjecTra_token';
-        this.USER_KEY = 'ProjecTra_user';
+        this.TOKEN_KEY = 'ProjectHub_token';
+        this.USER_KEY = 'ProjectHub_user';
     }
     setAuthData(token, userData) {
         localStorage.setItem(this.TOKEN_KEY, token);

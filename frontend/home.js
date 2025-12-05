@@ -8,14 +8,14 @@ try {
 } catch (e) {
     // Fallback implementation
     authManager = {
-        getToken: () => localStorage.getItem('ProjecTra_token'),
+        getToken: () => localStorage.getItem('ProjectHub_token'),
         getUserData: () => {
-            const data = localStorage.getItem('ProjecTra_user');
+            const data = localStorage.getItem('ProjectHub_user');
             return data ? JSON.parse(data) : null;
         },
         logout: () => {
-            localStorage.removeItem('ProjecTra_token');
-            localStorage.removeItem('ProjecTra_user');
+            localStorage.removeItem('ProjectHub_token');
+            localStorage.removeItem('ProjectHub_user');
             localStorage.removeItem('userId');
         },
         authenticatedFetch: async (url, options = {}) => {

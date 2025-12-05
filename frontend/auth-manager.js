@@ -1,8 +1,8 @@
-// JWT Authentication utilities for ProjecTra
+// JWT Authentication utilities for ProjectHub
 class AuthManager {
     constructor() {
-        this.TOKEN_KEY = 'ProjecTra_token';
-        this.USER_KEY = 'ProjecTra_user';
+        this.TOKEN_KEY = 'ProjectHub_token';
+        this.USER_KEY = 'ProjectHub_user';
         this.API_BASE_URL = `${window.location.origin}/api`;
     }
 
