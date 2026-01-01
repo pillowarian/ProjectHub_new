@@ -48,6 +48,10 @@ const userMenuBtn = document.getElementById('userMenuBtn');
 const dropdownMenu = document.getElementById('dropdownMenu');
 const logoutBtn = document.getElementById('logoutBtn');
 
+// Navigation buttons
+const todoListBtn = document.getElementById('todoListBtn');
+const messagesBtn = document.getElementById('messagesBtn');
+
 // Create project elements
 const createProjectBtn = document.getElementById('createProjectBtn');
 const createProjectModal = document.getElementById('createProjectModal');
@@ -57,6 +61,11 @@ const cancelProjectBtn = document.getElementById('cancelProjectBtn');
 const createProjectForm = document.getElementById('createProjectForm');
 const submitProjectBtn = document.getElementById('submitProjectBtn');
 const projectAlert = document.getElementById('projectAlert');
+
+// Collaborators elements
+const collaboratorSearch = document.getElementById('collaboratorSearch');
+const collaboratorsList = document.getElementById('collaboratorsList');
+const collaboratorsSelected = document.getElementById('collaboratorsSelected');
 
 // Projects elements
 const loadingState = document.getElementById('loadingState');
@@ -79,6 +88,8 @@ let currentTag = '';
 let currentSearchQuery = '';
 let isSearchMode = false;
 let allProjects = [];
+let selectedCollaborators = [];
+let availableMembers = [];
 
 // Get user ID
 function getUserId() {
@@ -157,10 +168,23 @@ logoutBtn.addEventListener('click', () => {
     window.location.href = '/auth/login.html';
 });
 
+// Navigation button handlers
+todoListBtn.addEventListener('click', () => {
+    window.location.href = 'todo-list.html';
+});
+
+messagesBtn.addEventListener('click', () => {
+    window.location.href = 'messages.html';
+});
+
 // Open create project modal
-createProjectBtn.addEventListener('click', () => {
+createProjectBtn.addEventListener('click', async () => {
     createProjectModal.classList.add('show');
     document.body.style.overflow = 'hidden';
+    // Load available members for collaborators when modal opens
+    if (userOrganization) {
+        await loadAvailableMembers();
+    }
 });
 
 // Close modal handlers
@@ -169,6 +193,9 @@ function closeModal() {
     document.body.style.overflow = 'auto';
     createProjectForm.reset();
     projectAlert.style.display = 'none';
+    selectedCollaborators = [];
+    collaboratorsList.innerHTML = '';
+    collaboratorsSelected.innerHTML = '';
 }
 
 modalClose.addEventListener('click', closeModal);
@@ -182,6 +209,101 @@ function showProjectAlert(message, type) {
     projectAlert.style.display = 'block';
     projectAlert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
+
+// Load available members for collaborators
+async function loadAvailableMembers() {
+    try {
+        const response = await authManager.authenticatedFetch(
+            `${API_BASE_URL}/users/organization/${encodeURIComponent(userOrganization)}/members`
+        );
+        
+        if (response.ok) {
+            const data = await response.json();
+            availableMembers = data.data || [];
+            displayAvailableMembers(availableMembers);
+        }
+    } catch (error) {
+        console.error('Error loading members:', error);
+    }
+}
+
+function displayAvailableMembers(members) {
+    collaboratorsList.innerHTML = '';
+    
+    members.forEach(member => {
+        const memberItem = document.createElement('div');
+        memberItem.className = 'collaborator-item';
+        memberItem.innerHTML = `
+            <div class="collaborator-checkbox">
+                <input type="checkbox" class="member-checkbox" value="${member.id}" data-name="${member.name}">
+            </div>
+            <div class="collaborator-info">
+                <span class="member-name">${escapeHtml(member.name)}</span>
+                <span class="member-username">@${escapeHtml(member.username)}</span>
+            </div>
+        `;
+        
+        const checkbox = memberItem.querySelector('.member-checkbox');
+        checkbox.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                selectedCollaborators.push({
+                    id: parseInt(member.id),
+                    name: member.name
+                });
+            } else {
+                selectedCollaborators = selectedCollaborators.filter(c => c.id !== parseInt(member.id));
+            }
+            updateSelectedCollaboratorsDisplay();
+        });
+        
+        collaboratorsList.appendChild(memberItem);
+    });
+}
+
+function updateSelectedCollaboratorsDisplay() {
+    collaboratorsSelected.innerHTML = '';
+    
+    selectedCollaborators.forEach(collab => {
+        const tag = document.createElement('div');
+        tag.className = 'collaborator-tag';
+        tag.innerHTML = `
+            <span>${escapeHtml(collab.name)}</span>
+            <button type="button" class="remove-collab" data-id="${collab.id}">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        `;
+        
+        tag.querySelector('.remove-collab').addEventListener('click', (e) => {
+            e.preventDefault();
+            const id = parseInt(e.currentTarget.dataset.id);
+            selectedCollaborators = selectedCollaborators.filter(c => c.id !== id);
+            const checkbox = collaboratorsList.querySelector(`input[value="${id}"]`);
+            if (checkbox) checkbox.checked = false;
+            updateSelectedCollaboratorsDisplay();
+        });
+        
+        collaboratorsSelected.appendChild(tag);
+    });
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Collaborator search
+collaboratorSearch?.addEventListener('input', (e) => {
+    const searchTerm = e.target.value.toLowerCase();
+    const filtered = availableMembers.filter(member =>
+        member.name.toLowerCase().includes(searchTerm) ||
+        member.username.toLowerCase().includes(searchTerm)
+    );
+    displayAvailableMembers(filtered);
+});
 
 // Create project form submission
 createProjectForm.addEventListener('submit', async (e) => {
@@ -210,6 +332,28 @@ createProjectForm.addEventListener('submit', async (e) => {
         const data = await response.json();
         
         if (response.ok && data.success) {
+            const projectId = data.data.projectId;
+            
+            // Add collaborators if any are selected
+            if (selectedCollaborators.length > 0) {
+                for (const collaborator of selectedCollaborators) {
+                    try {
+                        await authManager.authenticatedFetch(
+                            `${API_BASE_URL}/collaborators/project/${projectId}/add`,
+                            {
+                                method: 'POST',
+                                body: JSON.stringify({
+                                    userId: collaborator.id,
+                                    role: 'collaborator'
+                                })
+                            }
+                        );
+                    } catch (error) {
+                        console.error(`Error adding collaborator ${collaborator.name}:`, error);
+                    }
+                }
+            }
+            
             showProjectAlert('Project created successfully!', 'success');
             setTimeout(() => {
                 closeModal();
@@ -761,6 +905,10 @@ function createNotificationElement(notification) {
             iconContent = '💬';
             iconClass = 'comment';
             break;
+        case 'message':
+            iconContent = '✉️';
+            iconClass = 'message';
+            break;
         case 'new_project_org':
             iconContent = '🏢';
             iconClass = 'organization_project';
@@ -784,14 +932,18 @@ function createNotificationElement(notification) {
         </div>
     `;
     
-    // Add click handler to navigate to project and mark as read
+    // Add click handler to navigate to project/conversation and mark as read
     div.addEventListener('click', () => {
-        if (notification.project_id) {
-            // Mark as read if unread
-            if (!notification.is_read) {
-                markNotificationAsRead(notification.id);
-            }
-            
+        // Mark as read if unread
+        if (!notification.is_read) {
+            markNotificationAsRead(notification.id);
+        }
+        
+        // Navigate based on notification type
+        if (notification.type === 'message') {
+            // Navigate to messages page with sender's user ID
+            window.location.href = `/messages.html?userId=${notification.actor_user_id}`;
+        } else if (notification.project_id) {
             // Navigate to project
             window.location.href = `/project-view.html?id=${notification.project_id}`;
         }

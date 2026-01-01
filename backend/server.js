@@ -19,11 +19,19 @@ const authRoutes = require('./routes/authRoutes');
 const profileRoutes = require('./routes/profileRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const userRoutes = require('./routes/userRoutes');
+const messageRoutes = require('./routes/messageRoutes');
+const todoRoutes = require('./routes/todoRoutes');
+const collaboratorRoutes = require('./routes/collaboratorRoutes');
 
 app.use('/api', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/messages', messageRoutes);
+app.use('/api/todos', todoRoutes);
+app.use('/api/collaborators', collaboratorRoutes);
 
 // Serve static files from frontend directory
 app.use(express.static(path.join(__dirname, '../frontend')));

@@ -17,7 +17,7 @@ exports.login = async (req, res) => {
         
         // Find user by email or username
         const [users] = await db.query(
-            'SELECT id, username, name, email, password FROM users WHERE email = ? OR username = ?',
+            'SELECT id, username, name, email, password, organization FROM users WHERE email = ? OR username = ?',
             [emailOrUsername, emailOrUsername]
         );
         
@@ -51,7 +51,8 @@ exports.login = async (req, res) => {
                 userId: user.id,
                 username: user.username,
                 name: user.name,
-                email: user.email
+                email: user.email,
+                organization: user.organization
             },
             token: token
         });
@@ -73,7 +74,7 @@ exports.verifyToken = async (req, res) => {
         
         // Get updated user info from database
         const [users] = await db.query(
-            'SELECT id, username, name, email FROM users WHERE id = ?',
+            'SELECT id, username, name, email, organization FROM users WHERE id = ?',
             [userId]
         );
         
@@ -93,7 +94,8 @@ exports.verifyToken = async (req, res) => {
                 userId: user.id,
                 username: user.username,
                 name: user.name,
-                email: user.email
+                email: user.email,
+                organization: user.organization
             }
         });
     } catch (error) {

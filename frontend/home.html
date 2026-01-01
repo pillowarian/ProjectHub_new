@@ -32,6 +32,25 @@
 
             <!-- User Actions -->
             <div class="nav-right">
+                <!-- To-Do List Button -->
+                <button class="btn btn-create" id="todoListBtn" title="My To-Do List">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="5" width="18" height="14" rx="2" ry="2"></rect>
+                        <line x1="7" y1="9" x2="17" y2="9"></line>
+                        <line x1="7" y1="13" x2="17" y2="13"></line>
+                        <line x1="7" y1="17" x2="13" y2="17"></line>
+                    </svg>
+                    <span>To-Do</span>
+                </button>
+
+                <!-- Messages Button -->
+                <button class="btn btn-create" id="messagesBtn" title="Messages">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    <span>Messages</span>
+                </button>
+
                 <!-- Create Project Button -->
                 <button class="btn btn-create" id="createProjectBtn">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -230,6 +249,16 @@
                         <option value="private">Private - Only you can see</option>
                         <option value="organization">Organization - Only your organization</option>
                     </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="projectCollaborators">Add Collaborators (from your organization)</label>
+                    <div class="collaborators-selector">
+                        <input type="text" id="collaboratorSearch" placeholder="Search organization members...">
+                        <div class="collaborators-list" id="collaboratorsList"></div>
+                        <div class="collaborators-selected" id="collaboratorsSelected"></div>
+                    </div>
+                    <span class="help-text">Select members from your organization to add as collaborators</span>
                 </div>
 
                 <!-- Alert Message -->

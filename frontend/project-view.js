@@ -122,6 +122,47 @@ function updatePrivacyBadge(privacy) {
     }
 }
 
+// Load project collaborators
+async function loadProjectCollaborators(projectId) {
+    try {
+        const response = await authManager.authenticatedFetch(
+            `${API_BASE_URL}/collaborators/project/${projectId}/collaborators`
+        );
+        
+        if (!response.ok) {
+            // If endpoint doesn't exist or returns error, just skip collaborators
+            console.log('Collaborators endpoint not available');
+            return;
+        }
+        
+        const data = await response.json();
+        const collaborators = data.data || [];
+        
+        const collaboratorsList = document.getElementById('collaboratorsList');
+        
+        if (collaborators.length === 0) {
+            collaboratorsList.innerHTML = '<p style="color: #999; font-style: italic;">No collaborators yet</p>';
+            return;
+        }
+        
+        collaboratorsList.innerHTML = collaborators.map(collab => `
+            <div class="collaborator-item">
+                <div class="collaborator-avatar">
+                    <span>${(collab.name || collab.username || '?').split(' ').map(n => n[0]).join('').toUpperCase()}</span>
+                </div>
+                <div class="collaborator-info">
+                    <div class="collaborator-name">${collab.name || collab.username || 'Member'}</div>
+                    <div class="collaborator-role">${collab.role || 'Member'}</div>
+                </div>
+            </div>
+        `).join('');
+        
+    } catch (error) {
+        console.log('Error loading collaborators:', error);
+        // Don't show error to user, collaborators are optional
+    }
+}
+
 // Load project data
 async function loadProject() {
     const projectId = getProjectId();
@@ -155,6 +196,9 @@ async function loadProject() {
         
         // Populate project data
         populateProjectView();
+        
+        // Load collaborators
+        await loadProjectCollaborators(projectId);
         
         // Load likes status and comments
         if (currentUserId) {
@@ -233,6 +277,162 @@ function populateEditForm() {
     document.getElementById('editPrivacy').value = project.privacy || 'public';
 }
 
+// Load collaborators for edit mode
+async function loadOrganizationMembers() {
+    try {
+        const userData = authManager.getUserData();
+        if (!userData || !userData.organization) return;
+        
+        const response = await authManager.authenticatedFetch(
+            `${API_BASE_URL}/users/organization/${userData.organization}/members`
+        );
+        
+        if (!response.ok) throw new Error('Failed to load members');
+        
+        const data = await response.json();
+        const members = data.data || [];
+        
+        // Display available collaborators
+        displayAvailableCollaborators(members);
+        
+        // Load current project collaborators
+        await loadCurrentCollaborators(currentProject.id);
+        
+    } catch (error) {
+        console.error('Error loading organization members:', error);
+    }
+}
+
+function displayAvailableCollaborators(members) {
+    const container = document.getElementById('availableCollaborators');
+    const searchInput = document.getElementById('collaboratorSearch');
+    
+    const renderMembers = (membersToRender) => {
+        container.innerHTML = membersToRender.map(member => `
+            <label class="collaborator-checkbox-item">
+                <input type="checkbox" class="collaborator-checkbox" value="${member.id}" data-name="${member.name}">
+                <div class="collaborator-checkbox-avatar">
+                    ${member.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                </div>
+                <div class="collaborator-checkbox-info">
+                    <h5>${member.name}</h5>
+                    <p>${member.position || 'Team Member'}</p>
+                </div>
+            </label>
+        `).join('');
+        
+        // Add event listeners
+        document.querySelectorAll('.collaborator-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', updateSelectedCollaborators);
+        });
+    };
+    
+    renderMembers(members);
+    
+    // Search functionality
+    searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        const filtered = members.filter(m => 
+            m.name.toLowerCase().includes(query) || 
+            (m.position && m.position.toLowerCase().includes(query))
+        );
+        renderMembers(filtered);
+    });
+}
+
+async function loadCurrentCollaborators(projectId) {
+    try {
+        const response = await authManager.authenticatedFetch(
+            `${API_BASE_URL}/collaborators/project/${projectId}/collaborators`
+        );
+        
+        if (!response.ok) return;
+        
+        const data = await response.json();
+        const currentCollaborators = data.data || [];
+        
+        // Check the checkboxes for current collaborators
+        currentCollaborators.forEach(collab => {
+            const checkbox = document.querySelector(`.collaborator-checkbox[value="${collab.user_id}"]`);
+            if (checkbox) {
+                checkbox.checked = true;
+            }
+        });
+        
+        // Update selected collaborators display
+        updateSelectedCollaborators();
+        
+    } catch (error) {
+        console.log('No collaborators loaded yet');
+    }
+}
+
+function updateSelectedCollaborators() {
+    const checkedBoxes = document.querySelectorAll('.collaborator-checkbox:checked');
+    const selectedContainer = document.getElementById('selectedCollaborators');
+    
+    if (checkedBoxes.length === 0) {
+        selectedContainer.innerHTML = '<p style="color: #999; font-style: italic;">No collaborators selected</p>';
+        return;
+    }
+    
+    selectedContainer.innerHTML = Array.from(checkedBoxes).map(checkbox => `
+        <div class="selected-collaborator-badge">
+            ${checkbox.dataset.name}
+            <button type="button" onclick="document.querySelector('[value=\\\"${checkbox.value}\\\"]').click(); updateSelectedCollaborators();">×</button>
+        </div>
+    `).join('');
+}
+
+async function saveProjectCollaborators(projectId) {
+    try {
+        const checkedBoxes = document.querySelectorAll('.collaborator-checkbox:checked');
+        const collaboratorIds = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
+        
+        // Get current collaborators
+        const response = await authManager.authenticatedFetch(
+            `${API_BASE_URL}/collaborators/project/${projectId}/collaborators`
+        );
+        
+        if (!response.ok) {
+            console.log('Could not fetch current collaborators');
+            return;
+        }
+        
+        const data = await response.json();
+        const currentCollaborators = data.data || [];
+        const currentIds = currentCollaborators.map(c => c.user_id);
+        
+        // Find collaborators to add and remove
+        const toAdd = collaboratorIds.filter(id => !currentIds.includes(id));
+        const toRemove = currentIds.filter(id => !collaboratorIds.includes(id));
+        
+        // Add new collaborators
+        for (const userId of toAdd) {
+            await authManager.authenticatedFetch(
+                `${API_BASE_URL}/collaborators/project/${projectId}/add`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: userId, role: 'member' })
+                }
+            );
+        }
+        
+        // Remove collaborators
+        for (const userId of toRemove) {
+            await authManager.authenticatedFetch(
+                `${API_BASE_URL}/collaborators/project/${projectId}/remove/${userId}`,
+                { method: 'DELETE' }
+            );
+        }
+        
+    } catch (error) {
+        console.error('Error saving collaborators:', error);
+        // Don't fail the whole save if collaborators fail
+    }
+}
+
 // Toggle edit mode
 function toggleEditMode() {
     if (!isOwner) return;
@@ -245,6 +445,8 @@ function toggleEditMode() {
         showElement('editMode');
         editBtn.innerHTML = '❌ Cancel Edit';
         editBtn.className = 'btn btn-secondary nav-btn';
+        // Load organization members for collaborators selector
+        loadOrganizationMembers();
     } else {
         showElement('viewMode');
         hideElement('editMode');
@@ -301,6 +503,9 @@ async function saveProject(event) {
         
         // Update current project data
         Object.assign(currentProject, formData);
+        
+        // Save collaborators
+        await saveProjectCollaborators(currentProject.id);
         
         // Refresh view
         populateProjectView();

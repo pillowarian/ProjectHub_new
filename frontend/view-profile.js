@@ -33,6 +33,9 @@ const loadingState = document.getElementById('loadingState');
 const errorState = document.getElementById('errorState');
 const profileContent = document.getElementById('profileContent');
 const editProfileBtn = document.getElementById('editProfileBtn');
+const followBtn = document.getElementById('followBtn');
+const messageBtn = document.getElementById('messageBtn');
+const followText = document.getElementById('followText');
 
 // Profile elements
 const avatarInitials = document.getElementById('avatarInitials');
@@ -61,6 +64,8 @@ const noProjects = document.getElementById('noProjects');
 const projectsGrid = document.getElementById('projectsGrid');
 
 let currentUserId = null;
+let loggedInUserId = null;
+let isOwnProfile = false;
 
 // Get user ID from JWT token or URL
 function getUserId() {
@@ -108,6 +113,9 @@ function formatMemberSince(dateString) {
 // Load profile data
 async function loadProfile() {
     currentUserId = getUserId();
+    const userData = authManager.getUserData();
+    loggedInUserId = userData ? userData.userId : null;
+    isOwnProfile = loggedInUserId && loggedInUserId.toString() === currentUserId.toString();
     
     if (!currentUserId) {
         showError();
@@ -121,12 +129,77 @@ async function loadProfile() {
         if (response.ok && data.success) {
             displayProfile(data.data);
             loadProjects();
+            
+            // Setup follow/message buttons
+            if (!isOwnProfile && loggedInUserId && data.data.organization) {
+                setupFollowMessage(data.data);
+            }
         } else {
             showError();
         }
     } catch (error) {
         console.error('Error loading profile:', error);
         showError();
+    }
+}
+
+// Setup follow and message buttons
+async function setupFollowMessage(profile) {
+    followBtn.style.display = 'flex';
+    messageBtn.style.display = 'flex';
+    editProfileBtn.style.display = 'none';
+    
+    // Check if already following
+    try {
+        const response = await authManager.authenticatedFetch(
+            `${API_BASE_URL}/users/${currentUserId}/is-following`
+        );
+        
+        if (response.ok) {
+            const data = await response.json();
+            updateFollowButton(data.isFollowing);
+        }
+    } catch (error) {
+        console.error('Error checking follow status:', error);
+    }
+    
+    // Follow button handler
+    followBtn.addEventListener('click', async () => {
+        try {
+            const isFollowing = followBtn.dataset.following === 'true';
+            const endpoint = isFollowing ? 'unfollow' : 'follow';
+            const url = `${API_BASE_URL}/users/${currentUserId}/${endpoint}`;
+            
+            const response = await authManager.authenticatedFetch(url, {
+                method: 'POST'
+            });
+            
+            if (response.ok) {
+                updateFollowButton(!isFollowing);
+            } else {
+                alert('Error updating follow status');
+            }
+        } catch (error) {
+            console.error('Error toggling follow:', error);
+            alert('Error toggling follow');
+        }
+    });
+    
+    // Message button handler
+    messageBtn.addEventListener('click', () => {
+        // Navigate to messages page with the user selected
+        window.location.href = `messages.html?userId=${currentUserId}`;
+    });
+}
+
+function updateFollowButton(isFollowing) {
+    followBtn.dataset.following = isFollowing;
+    if (isFollowing) {
+        followText.textContent = 'Following';
+        followBtn.classList.add('following');
+    } else {
+        followText.textContent = 'Follow';
+        followBtn.classList.remove('following');
     }
 }
 
@@ -184,6 +257,14 @@ function displayProfile(profile) {
     
     if (hasSocialLinks) {
         socialSection.style.display = 'block';
+    }
+    
+    // Show edit button only if own profile
+    if (isOwnProfile) {
+        editProfileBtn.style.display = 'flex';
+        editProfileBtn.addEventListener('click', () => {
+            window.location.href = 'edit-profile.html';
+        });
     }
 }
 

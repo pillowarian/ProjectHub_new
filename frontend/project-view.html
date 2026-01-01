@@ -100,6 +100,13 @@
                         <!-- Tags will be populated dynamically -->
                     </div>
                 </div>
+
+                <div class="detail-section">
+                    <h3>👥 Collaborators</h3>
+                    <div id="collaboratorsList" class="collaborators-container">
+                        <!-- Collaborators will be populated dynamically -->
+                    </div>
+                </div>
             </div>
 
             <!-- Project Details - Edit Mode -->
@@ -138,6 +145,25 @@
                             <option value="private">Private</option>
                             <option value="organization">Organization Only</option>
                         </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>👥 Add Collaborators</label>
+                        <div class="collaborators-selector">
+                            <div class="collaborators-search">
+                                <input type="text" id="collaboratorSearch" placeholder="Search organization members...">
+                            </div>
+                            <div id="availableCollaborators" class="available-collaborators">
+                                <!-- Will be populated with organization members -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Selected Collaborators:</label>
+                        <div id="selectedCollaborators" class="selected-collaborators">
+                            <!-- Selected collaborators will appear here -->
+                        </div>
                     </div>
 
                     <div class="form-actions">

@@ -1,7 +1,7 @@
-CREATE DATABASE IF NOT EXISTS project_feed_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS protrack_new_features CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 
-USE project_feed_db;
+USE protrack_new_features;
 
 -- Users table
 CREATE TABLE IF NOT EXISTS users (
@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS comment_likes (
 CREATE TABLE IF NOT EXISTS notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
-    type ENUM('like', 'comment', 'organization_project') NOT NULL,
+    type ENUM('like', 'comment', 'organization_project', 'message') NOT NULL,
     title VARCHAR(255) NOT NULL,
     message TEXT NOT NULL,
     project_id INT,
@@ -127,3 +127,69 @@ CREATE TABLE IF NOT EXISTS notifications (
     INDEX idx_created_at (created_at),
     INDEX idx_project_id (project_id)
 );
+
+-- User follows table (for following users within organization)
+CREATE TABLE IF NOT EXISTS user_follows (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    follower_id INT NOT NULL,
+    following_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_follow (follower_id, following_id),
+    FOREIGN KEY (follower_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (following_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_follower_id (follower_id),
+    INDEX idx_following_id (following_id)
+);
+
+-- Messages table (for direct messaging within organization)
+CREATE TABLE IF NOT EXISTS messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    sender_id INT NOT NULL,
+    recipient_id INT NOT NULL,
+    content TEXT NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (recipient_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_sender_id (sender_id),
+    INDEX idx_recipient_id (recipient_id),
+    INDEX idx_created_at (created_at),
+    INDEX idx_is_read (is_read),
+    INDEX idx_conversation (sender_id, recipient_id)
+);
+
+-- Project collaborators table (for project collaboration)
+CREATE TABLE IF NOT EXISTS project_collaborators (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT NOT NULL,
+    user_id INT NOT NULL,
+    role ENUM('collaborator', 'co-owner') DEFAULT 'collaborator',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_collaborator (project_id, user_id),
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_project_id (project_id),
+    INDEX idx_user_id (user_id)
+);
+
+-- To-do items table (for user's project tasks)
+CREATE TABLE IF NOT EXISTS to_do_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    project_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    status ENUM('pending', 'in_progress', 'completed') DEFAULT 'pending',
+    priority ENUM('low', 'medium', 'high') DEFAULT 'medium',
+    due_date DATE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    INDEX idx_user_id (user_id),
+    INDEX idx_project_id (project_id),
+    INDEX idx_status (status),
+    INDEX idx_due_date (due_date)
+);
+
