@@ -36,8 +36,8 @@ app.use('/api/collaborators', collaboratorRoutes);
 // Serve static files from frontend directory
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// Serve static files from auth directory
-app.use('/auth', express.static(path.join(__dirname, '../auth')));
+// Serve static files from Auth directory
+app.use('/auth', express.static(path.join(__dirname, '../Auth')));
 
 // Health check
 app.get('/api/health', (req, res) => {
